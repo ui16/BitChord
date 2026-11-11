@@ -1,0 +1,14 @@
+name: Actions Runner Diagnostic
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runner-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm GitHub runner starts
+        run: echo "GitHub Actions runner started successfully"
