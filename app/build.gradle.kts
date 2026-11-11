@@ -139,6 +139,11 @@ android {
             dimension = "env"
             // Matches defaultConfig — this is the package already shipped/installed.
         }
+        create("vinyl") {
+            dimension = "env"
+            applicationId = "com.music.bitchord.vinyl"
+            resValue("string", "app_name", "BitChord Vinyl Edition")
+        }
     }
 
     signingConfigs {
