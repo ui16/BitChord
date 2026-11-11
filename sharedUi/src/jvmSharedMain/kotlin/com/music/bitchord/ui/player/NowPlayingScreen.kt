@@ -31,7 +31,13 @@ import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -867,6 +873,8 @@ fun NowPlayingScreen(
      * rather than a still of it.
      */
     onLiveCanvasChanged: (Boolean) -> Unit = {},
+    /** Render the dedicated vinyl-player presentation in the standalone edition. */
+    vinylEdition: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
@@ -3428,6 +3436,14 @@ fun NowPlayingScreen(
                                     },
                             )
 
+                            if (vinylEdition) {
+                                VinylRecordArtwork(
+                                    imageModel = art.request,
+                                    isPlaying = isPlaying,
+                                    modifier = Modifier.align(Alignment.Center).size(280.dp),
+                                )
+                            }
+
                             // Where the clip plays when it can't have the banner:
                             // inside the same clip as the still art, taking the
                             // sleeve's corners, shadow and paused shrink for free.
@@ -4245,4 +4261,74 @@ private suspend fun AwaitPointerEventScope.dragQueueIn(
     }
     onHold(false)
     onSettle(open)
+}
+
+@Composable
+private fun VinylRecordArtwork(
+    imageModel: Any?,
+    isPlaying: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val spin = rememberInfiniteTransition(label = "vinylSpin").animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 4200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "vinylRotation",
+    )
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        Canvas(
+            modifier = Modifier.fillMaxSize().graphicsLayer {
+                rotationZ = if (isPlaying) spin.value else 0f
+            },
+        ) {
+            val radius = size.minDimension * 0.47f
+            val center = Offset(size.width / 2f, size.height / 2f)
+            drawCircle(
+                brush = Brush.linearGradient(
+                    listOf(Color(0xFF343434), Color(0xFF080808), Color(0xFF292929)),
+                    start = Offset(0f, 0f),
+                    end = Offset(size.width, size.height),
+                ),
+                radius = radius,
+                center = center,
+            )
+            for (index in 1..18) {
+                drawCircle(
+                    color = Color.White.copy(alpha = if (index % 3 == 0) 0.15f else 0.065f),
+                    radius = radius * (0.34f + index * 0.032f),
+                    center = center,
+                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.dp.toPx()),
+                )
+            }
+            drawCircle(
+                color = Color.White.copy(alpha = 0.12f),
+                radius = radius * 0.98f,
+                center = center,
+                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.dp.toPx()),
+            )
+        }
+        AsyncImage(
+            model = imageModel,
+            contentDescription = "Vinyl record album label",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.size(112.dp).clip(CircleShape).shadow(8.dp, CircleShape),
+        )
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val lift = if (isPlaying) 0f else 7.dp.toPx()
+            val pivot = Offset(size.width * 0.78f, size.height * 0.17f + lift)
+            val tip = Offset(size.width * 0.58f, size.height * 0.39f)
+            drawLine(
+                color = Color(0xFFD9DDE2),
+                start = pivot,
+                end = tip,
+                strokeWidth = 5.dp.toPx(),
+                cap = androidx.compose.ui.graphics.StrokeCap.Round,
+            )
+            drawCircle(Color(0xFFE8EBEF), radius = 7.dp.toPx(), center = pivot)
+            drawCircle(Color(0xFF555B63), radius = 3.dp.toPx(), center = pivot)
+        }
+    }
 }
