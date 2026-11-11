@@ -2,6 +2,8 @@ name: Build BitChord Vinyl Edition
 
 on:
   workflow_dispatch:
+  push:
+    branches: [vinyl-edition]
 
 jobs:
   build-vinyl-release:
