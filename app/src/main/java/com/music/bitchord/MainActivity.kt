@@ -2546,6 +2546,7 @@ private fun BitChordApp(
             // the parameter.
             menuOpen = { songActions != null && menuFromPlayer && songMenuOrigin == null },
             onLiveCanvasChanged = { playerLiveCanvas = it },
+            vinylEdition = BuildConfig.FLAVOR == "vinyl",
             isPlaying = player.isPlaying,
             isLoading = playPauseBusy,
             position = player.position,
